@@ -1,20 +1,20 @@
 {
   "files": {
     "main.css": "/jp-tts/static/css/main.9e5a5e42.chunk.css",
-    "main.js": "/jp-tts/static/js/main.652cab56.chunk.js",
-    "main.js.map": "/jp-tts/static/js/main.652cab56.chunk.js.map",
+    "main.js": "/jp-tts/static/js/main.cbf4d726.chunk.js",
+    "main.js.map": "/jp-tts/static/js/main.cbf4d726.chunk.js.map",
     "runtime-main.js": "/jp-tts/static/js/runtime-main.a22e4556.js",
     "runtime-main.js.map": "/jp-tts/static/js/runtime-main.a22e4556.js.map",
-    "static/js/2.9e926512.chunk.js": "/jp-tts/static/js/2.9e926512.chunk.js",
-    "static/js/2.9e926512.chunk.js.map": "/jp-tts/static/js/2.9e926512.chunk.js.map",
+    "static/js/2.de407d57.chunk.js": "/jp-tts/static/js/2.de407d57.chunk.js",
+    "static/js/2.de407d57.chunk.js.map": "/jp-tts/static/js/2.de407d57.chunk.js.map",
     "index.html": "/jp-tts/index.html",
     "static/css/main.9e5a5e42.chunk.css.map": "/jp-tts/static/css/main.9e5a5e42.chunk.css.map",
-    "static/js/2.9e926512.chunk.js.LICENSE.txt": "/jp-tts/static/js/2.9e926512.chunk.js.LICENSE.txt"
+    "static/js/2.de407d57.chunk.js.LICENSE.txt": "/jp-tts/static/js/2.de407d57.chunk.js.LICENSE.txt"
   },
   "entrypoints": [
     "static/js/runtime-main.a22e4556.js",
-    "static/js/2.9e926512.chunk.js",
+    "static/js/2.de407d57.chunk.js",
     "static/css/main.9e5a5e42.chunk.css",
-    "static/js/main.652cab56.chunk.js"
+    "static/js/main.cbf4d726.chunk.js"
   ]
 }
