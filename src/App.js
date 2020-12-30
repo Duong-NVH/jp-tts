@@ -13,7 +13,7 @@ import VolumeUpIcon from "@material-ui/icons/VolumeUp";
 import GetAppIcon from "@material-ui/icons/GetApp";
 import MicIcon from "@material-ui/icons/Mic";
 import axios from "axios";
-import lamejs from "lamejs";
+import toWav from "audiobuffer-to-wav";
 
 const App = () => {
   const [text, setText] = useState("");
@@ -28,7 +28,7 @@ const App = () => {
   };
   const onRequest = async () => {
     if (text.length > 0) {
-      const API = `https://cors-anywhere.herokuapp.com/us-central1-spontane.cloudfunctions.net/txttospeech?text=${text}&languageCode=ja-JP&voiceCode=ja-JP-Standard-A`;
+      const API = `https://us-central1-spontane.cloudfunctions.net/txttospeech?text=${text}&languageCode=ja-JP&voiceCode=ja-JP-Standard-A`;
       setIsLoading(true);
       try {
         const res = await axios.post(API);
@@ -52,34 +52,18 @@ const App = () => {
     playSound.connect(ctx.destination);
     playSound.start(ctx.currentTime);
   };
-  const onDownload = () => {
-    const channels = 2; //1 for mono or 2 for stereo
-    const sampleRate = 44100; //44.1khz (normal mp3 samplerate)
-    const kbps = 128; //encode 128kbps mp3
-    const mp3encoder = new lamejs.Mp3Encoder(channels, sampleRate, kbps);
-    let mp3Data = [];
-    const sampleBlockSize = 1152;
-
-    const data = new Int16Array(Int16Array.from(audioBuffer));
-
-    for (var i = 0; i < data.length; i += sampleBlockSize) {
-      let leftChunk = data.subarray(i, i + sampleBlockSize);
-      let rightChunk = data.subarray(i, i + sampleBlockSize);
-      var mp3buf = mp3encoder.encodeBuffer(leftChunk, rightChunk);
-      if (mp3buf.length > 0) {
-        mp3Data.push(mp3buf);
-      }
-    }
-    mp3buf = mp3encoder.flush(); //finish writing mp3
-
-    if (mp3buf.length > 0) {
-      mp3Data.push(new Int8Array(mp3buf));
-    }
-    let blob = new Blob(mp3Data, { type: "audio/mp3" });
+  const onDownload = async () => {
+    const data = new Int8Array(Int8Array.from(audioBuffer));
+    const ctx = new AudioContext();
+    const audio = await ctx.decodeAudioData(data.buffer);
+    var wav = toWav(audio);
+    let blob = new Blob([new DataView(wav)], {
+      type: "audio/wav",
+    });
     let url = window.URL.createObjectURL(blob);
     let tempLink = document.createElement("a");
     tempLink.href = url;
-    tempLink.setAttribute("download", "audio.mp3");
+    tempLink.setAttribute("download", "audio.wav");
     tempLink.click();
   };
 
@@ -125,7 +109,7 @@ const App = () => {
             startIcon={<GetAppIcon />}
             onClick={onDownload}
           >
-            {"Get mp3"}
+            {"Get audio"}
           </Button>
           <Button
             variant="contained"
