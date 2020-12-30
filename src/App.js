@@ -10,37 +10,77 @@ import {
 } from "@material-ui/core";
 import SendIcon from "@material-ui/icons/Send";
 import VolumeUpIcon from "@material-ui/icons/VolumeUp";
+import GetAppIcon from "@material-ui/icons/GetApp";
+import MicIcon from "@material-ui/icons/Mic";
 import axios from "axios";
-
-const API = "https://us-central1-spontane.cloudfunctions.net/txttospeech";
-const DEFAULT_PARAMS = {
-  languageCode: "ja-JP",
-  voiceCode: "ja-JP-Standard-A",
-};
+import lamejs from "lamejs";
 
 const App = () => {
   const [text, setText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [audioBuffer, setAudioBuffer] = useState();
   const classes = useStyles();
   const onChangeText = (e) => {
+    if (audioBuffer) {
+      setAudioBuffer(null);
+    }
     setText(e.target.value);
   };
   const onRequest = async () => {
-    setIsLoading(true);
-    try {
-      const res = await axios.post(API, {
-        ...DEFAULT_PARAMS,
-        value: text,
-      });
-      if (res.audioContent.data) {
-        alert(1);
-      } else {
-        alert(res);
+    if (text.length > 0) {
+      const API = `https://cors-anywhere.herokuapp.com/us-central1-spontane.cloudfunctions.net/txttospeech?text=${text}&languageCode=ja-JP&voiceCode=ja-JP-Standard-A`;
+      setIsLoading(true);
+      try {
+        const res = await axios.post(API);
+        if (res.data.audioContent.data) {
+          setAudioBuffer(res.data.audioContent.data);
+        } else {
+          alert("?");
+        }
+      } catch (error) {
+        alert(error);
       }
-    } catch (error) {
-      alert(error);
+      setIsLoading(false);
     }
-    setIsLoading(false);
+  };
+  const onPlay = async () => {
+    const ctx = new AudioContext();
+    const data = new Int8Array(Int8Array.from(audioBuffer));
+    const audio = await ctx.decodeAudioData(data.buffer);
+    const playSound = ctx.createBufferSource();
+    playSound.buffer = audio;
+    playSound.connect(ctx.destination);
+    playSound.start(ctx.currentTime);
+  };
+  const onDownload = () => {
+    const channels = 2; //1 for mono or 2 for stereo
+    const sampleRate = 44100; //44.1khz (normal mp3 samplerate)
+    const kbps = 128; //encode 128kbps mp3
+    const mp3encoder = new lamejs.Mp3Encoder(channels, sampleRate, kbps);
+    let mp3Data = [];
+    const sampleBlockSize = 1152;
+
+    const data = new Int16Array(Int16Array.from(audioBuffer));
+
+    for (var i = 0; i < data.length; i += sampleBlockSize) {
+      let leftChunk = data.subarray(i, i + sampleBlockSize);
+      let rightChunk = data.subarray(i, i + sampleBlockSize);
+      var mp3buf = mp3encoder.encodeBuffer(leftChunk, rightChunk);
+      if (mp3buf.length > 0) {
+        mp3Data.push(mp3buf);
+      }
+    }
+    mp3buf = mp3encoder.flush(); //finish writing mp3
+
+    if (mp3buf.length > 0) {
+      mp3Data.push(new Int8Array(mp3buf));
+    }
+    let blob = new Blob(mp3Data, { type: "audio/mp3" });
+    let url = window.URL.createObjectURL(blob);
+    let tempLink = document.createElement("a");
+    tempLink.href = url;
+    tempLink.setAttribute("download", "audio.mp3");
+    tempLink.click();
   };
 
   return (
@@ -76,6 +116,28 @@ const App = () => {
           {isLoading ? "Processing" : "Convert to speech"}
         </Button>
       </Container>
+      {audioBuffer && (
+        <Box>
+          <Button
+            variant="contained"
+            color="primary"
+            size="large"
+            startIcon={<GetAppIcon />}
+            onClick={onDownload}
+          >
+            {"Get mp3"}
+          </Button>
+          <Button
+            variant="contained"
+            color="secondary"
+            size="large"
+            startIcon={<MicIcon />}
+            onClick={onPlay}
+          >
+            {"Play"}
+          </Button>
+        </Box>
+      )}
     </Box>
   );
 };
@@ -85,6 +147,12 @@ const useStyles = makeStyles({
     textAlign: "center",
     "&>:first-child": {
       margin: 20,
+    },
+    "&>:nth-child(3)": {
+      margin: 20,
+      "&>*": {
+        margin: "0 5px 0px 5px",
+      },
     },
   },
   content: {
